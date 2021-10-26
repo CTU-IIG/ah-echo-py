@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
+# Echo Server
 # Source: https://realpython.com/python-sockets/
 
-# Socket
-import socket
-
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+######################
+# Imports & Globals
+######################
 
 # Arrowhead
+## Requests with .p12 support
 import requests_pkcs12
 
+# Socket communication
+import socket
+
+
+# Global variables
+HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
+PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 p12 = "./certificates/echo_server.p12"
 pub = "./certificates/echo_server.publickey.pem"
+url = "https://127.0.0.1:8443/serviceregistry/"
+
+
+# Reading out the public key (as we need it in plaintext)
 public_key = ""
 
 with open(pub, "r") as f:
@@ -19,7 +30,10 @@ with open(pub, "r") as f:
 
 public_key = "".join(public_key.split("\n")[1:-2])
 
-url = "https://127.0.0.1:8443/serviceregistry/"
+
+######################
+# Arrowhead Framework
+######################
 
 # Register service
 data = {
@@ -40,6 +54,11 @@ data = {
 res = requests_pkcs12.post(url + "register", json=data, pkcs12_filename=p12, pkcs12_password="123456")
 
 print (res.text)
+
+
+######################
+# Echo Server
+######################
 
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
