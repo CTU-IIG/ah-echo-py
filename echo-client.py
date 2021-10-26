@@ -1,77 +1,116 @@
 #!/usr/bin/env python3
-# Source: https://realpython.com/python-sockets/
+# echo-client.py
+"""Simple echo client that is Arrowhead Compliant."""
 
-# Socket
-import socket
-
-#HOST = '127.0.0.1'  # The server's hostname or IP address
-#PORT = 65432        # The port used by the server
+######################
+# Imports & Globals
+######################
 
 # Arrowhead
+# Requests with .p12 support
 import requests_pkcs12
 
-p12 = "./certificates/echo_client.p12"
-pub = "./certificates/echo_client.publickey.pem"
+# Socket communication
+import socket
+
+# Error output
+import sys
+
+
+# Global configuration
+CONFIG = {
+    "p12_path": # Path to the p12 certificate
+        "./certificates/echo_client.p12",
+    "p12_pass": # Password to the certificate
+        "123456",
+    "pub_path": # Path to the public key
+        "./certificates/echo_client.pub",
+    "url_orch": # URL to the orchestrator (no endpoint)
+        "https://127.0.0.1:8441/orchestrator",
+}
+
+
+# Reading out the public key (as we need it in plaintext)
 public_key = ""
 
-with open(pub, "r") as f:
+with open(CONFIG["pub_path"], "r") as f:
     public_key = f.read()
 
 public_key = "".join(public_key.split("\n")[1:-2])
 
-url = "https://127.0.0.1:8441/orchestrator/orchestration"
 
-# Unregister service (if registered, just to show it)
-#data = {
-#    "address": HOST,
-#    "port": PORT,
-#    "service_definition": "echo",
-#    "system_name": "echoclient"
-#}
-#
-#res = requests_pkcs12.delete(url + "unregister?" + "&".join(["%s=%s" % (key, value) for key, value in data.items()]), pkcs12_filename=p12, pkcs12_password="123456")
+######################
+# Arrowhead Framework
+######################
 
-#print (res.text)
+def findServer():
+    """Find the echo server using Arrowhead Framework."""
+    global CONFIG
 
-# Find server
-data = {
-    "requesterSystem": {
-        "systemName": "echo_client",
-        "authenticationInfo": public_key, # required with 'CERTIFICATE' and 'TOKEN'
-        "address": "127.0.0.1",
-        "port": 0,
-    },
-    "orchestrationFlags": {
-        "overrideStore": "true"
-    },
-    "requestedService": {
-        "interfaceRequirements": [ # In here, you can use 'interfaceRequirement' (string). But it is not supported by Orchestrator (anymore?).
-            "HTTP-INSECURE-JSON"
-        ],
-        "serviceDefinitionRequirement": "echo",
+    print ("Looking for echo server...")
+
+    data = {
+        "requesterSystem": {
+            "systemName": "echo_client",
+            "authenticationInfo": public_key, # required with 'CERTIFICATE' and 'TOKEN'
+            "address": "127.0.0.1",
+            "port": 0, # I assume that this means that we are not listening
+        },
+        "orchestrationFlags": {
+            "overrideStore": "true"
+        },
+        "requestedService": {
+            # In here, you can use 'interfaceRequirement' (string). But it is not supported by Orchestrator (anymore?).
+            "interfaceRequirements": [
+                "HTTP-INSECURE-JSON"
+            ],
+            "serviceDefinitionRequirement": "echo",
+        }
     }
-}
 
-res = requests_pkcs12.post(url, json=data, pkcs12_filename=p12, pkcs12_password="123456")
+    res = requests_pkcs12.post(
+            CONFIG["url_orch"]
+            + "/orchestration",
+            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
 
-print (res.status_code, res.text)
+    print (res.status_code, res.text)
 
-if (res.status_code >= 400):
-    print ("Server not found.")
-    exit (1)
+    if (res.status_code >= 400):
+        print ("Server not found.", file=sys.stderr)
+        return False
+    else:
+        for provider in res.json()["response"]:
+            CONFIG["host"] = provider["provider"]["address"]
+            CONFIG["port"] = provider["provider"]["port"]
+            print (provider)
+            break
+        else:
+            return False
 
-for provider in res.json()["response"]:
-    HOST = provider["provider"]["address"]
-    PORT = provider["provider"]["port"]
-    print (provider)
-    break
-else:
-    exit (2)
+    return True
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
-    s.sendall(b'Hello, world')
-    data = s.recv(1024)
 
-print('Received', repr(data))
+######################
+# Echo Client
+######################
 
+def sendData():
+    """Open up socket to the server, send data and obtain the response."""
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((CONFIG["host"], CONFIG["port"]))
+        s.sendall(b'Hello, world')
+        data = s.recv(1024)
+
+    print('Received', repr(data))
+
+
+######################
+# Main
+######################
+
+if __name__ == "__main__":
+    if findServer():
+        sendData()
+    else:
+        print ("Unable to find the server. Is it registered and running?", file=sys.stderr)
