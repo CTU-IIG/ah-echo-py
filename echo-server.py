@@ -133,3 +133,6 @@ if __name__ == "__main__":
             pass
         finally:
             unregisterService()
+    else:
+        print ("Unable to register the service. Trying to unregister it instead.")
+        unregisterService()
