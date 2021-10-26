@@ -50,20 +50,39 @@ def findServer():
     print ("Looking for echo server...")
 
     data = {
+        # *Who are we?
+        # Here we introduce the system asking the service.
+        # 'systemName' should be same as the name in the certificate.
+        #   - Otherwise, we get an SSL error.
+        # 'authenticationInfo' is required with 'CERTIFICATE' and 'TOKEN'
+        #   - For 'CERTIFICATE' I put there public key (so it should be asymmetric encryption).
+        # 'address' is an IP address / name? of the system
+        # 'port' is port used for the communication
         "requesterSystem": {
             "systemName": "echo_client",
-            "authenticationInfo": public_key, # required with 'CERTIFICATE' and 'TOKEN'
+            "authenticationInfo": public_key,
             "address": "127.0.0.1",
             "port": 0, # I assume that this means that we are not listening
         },
+
+        # Dynamic Orchestration
+        #  - By passing this value we say that we want to find the counterpart dynamically,
+        #  skipping any pre-set configuration in the Orchestrator.
         "orchestrationFlags": {
             "overrideStore": "true"
         },
+
+        # Which service do we want?
+        # Since the dynamic orchestration is enabled, this is mandatory*.
         "requestedService": {
+            # Which interface we want to use?
+            #  - This is optional.
             # In here, you can use 'interfaceRequirement' (string). But it is not supported by Orchestrator (anymore?).
             "interfaceRequirements": [
                 "HTTP-INSECURE-JSON"
             ],
+
+            # *What is the name of the service?
             "serviceDefinitionRequirement": "echo",
         }
     }

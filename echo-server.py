@@ -50,18 +50,50 @@ def registerService():
     print ("Registering the service...")
 
     data = {
+        # *Which interface do we use?
+        # The convention (name pattern is) PROTOCOL-SECURE/INSECURE-DATA_FORMAT
+        # I assume that SECURE = encrypted by the TOKEN/CERTIFICATE
         "interfaces": [
-            "HTTP-INSECURE-JSON", # INSECURE because we do not use certificates for encrypting the data
+            "HTTP-INSECURE-JSON",
         ],
+
+        # *Who are we?
+        # Here we introduce the system providing the service.
+        # 'systemName' should be same as the name in the certificate.
+        #   - Otherwise, we get an SSL error.
+        # 'authenticationInfo' is required with 'CERTIFICATE' and 'TOKEN'
+        #   - For 'CERTIFICATE' I put there public key (so it should be asymmetric encryption).
+        # 'address' is an IP address / name? of the server
+        # 'port' is port used for the communication
         "providerSystem": {
-            "systemName": "echo_server", # The same name as in the certificate
-            "authenticationInfo": public_key, # required with 'CERTIFICATE' and 'TOKEN'
+            "systemName": "echo_server",
+            "authenticationInfo": public_key,
             "address": CONFIG["host"],
             "port": CONFIG["port"],
         },
+
+        # *Which service we provide?
         "serviceDefinition": "echo",
-        "secure": "CERTIFICATE", # "NOT_SECURE", "CERTIFICATE", "TOKEN"
-        "version": 1, # Who knows.
+
+        # Security info (probably just showing what can be used for authorization?)
+        #  - Default is 'NOT_SECURE', other options are: 'CERTIFICATE' and 'TOKEN'
+        "secure": "CERTIFICATE",
+
+        # Version of the service
+        "version": 1,
+
+        ## Other parts we do not use (even though some of them are mandatory*):
+
+        # *URI of the service
+        # "serviceUri": "string",
+
+        # Service is available until this UTC timestamp
+        # "endOfValidity": "string",
+
+        # Various optional metadata
+        # "metadata": {
+        #     "additionalProperty1": "string",
+        # },
     }
 
     res = requests_pkcs12.post(
@@ -80,10 +112,17 @@ def unregisterService():
     print ("Unregistering the service...")
 
     data = {
+        # *Who are we and what we want to unregister?
+        #  - We are allowed to unregister only our services.
+        # 'address': IP address of the provider
+        # 'port': port of the provider
+        # 'system_name': name of the provider
         "address": CONFIG["host"],
         "port": CONFIG["port"],
-        "service_definition": "echo",
         "system_name": "echo_server",
+
+        # *'service_definition': service to be removed
+        "service_definition": "echo",
     }
 
     res = requests_pkcs12.delete(
