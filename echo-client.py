@@ -19,6 +19,8 @@ import sys
 
 # Global configuration
 CONFIG = {
+    "ip":       # IP address of the interface for the client
+        "127.0.0.1",
     "p12_path": # Path to the p12 certificate
         "./certificates/echo_client.p12",
     "p12_pass": # Password to the certificate
@@ -27,6 +29,8 @@ CONFIG = {
         "./certificates/echo_client.pub",
     "url_orch": # URL to the orchestrator (no endpoint)
         "https://127.0.0.1:8441/orchestrator",
+    "url_sreg": # URL to the service registry (no endpoint)
+        "https://127.0.0.1:8443/serviceregistry/",
 }
 
 
@@ -42,6 +46,38 @@ public_key = "".join(public_key.split("\n")[1:-2])
 ######################
 # Arrowhead Framework
 ######################
+
+def registerConsumer():
+    """Register the client in the Arrowhead Framework."""
+
+    print ("Registering the system...")
+
+    data = {
+        # *Who are we?
+        # 'systemName': name of the client
+        # 'authenticationInfo' is required with 'CERTIFICATE' and 'TOKEN'
+        #   - For 'CERTIFICATE' I put there public key (so it should be asymmetric encryption).
+        # 'address': IP address of the client
+        # 'port': port is not used, so zero (we are consuming)
+        "systemName": "echo_client",
+        "authenticationInfo": public_key,
+        "address": CONFIG["ip"],
+        "port": 0,
+    }
+
+    res = requests_pkcs12.post(
+            CONFIG["url_sreg"]
+            + "register-system",
+            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+
+    print (res.status_code, res.text)
+
+    if (res.status_code >= 400):
+        print ("Unable to create the system.", file=sys.stderr)
+        exit (1)
+
+    return True
+
 
 def findServer():
     """Find the echo server using Arrowhead Framework."""
@@ -95,8 +131,12 @@ def findServer():
     print (res.status_code, res.text)
 
     if (res.status_code >= 400):
-        print ("Server not found.", file=sys.stderr)
-        return False
+        print ("Client is not authorized for communication with the Orchestrator.", file=sys.stderr)
+
+        print ("Trying to register it instead...")
+        registerConsumer()
+
+        exit (1)
     else:
         for provider in res.json()["response"]:
             CONFIG["host"] = provider["provider"]["address"]
