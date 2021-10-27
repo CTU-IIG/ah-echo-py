@@ -103,6 +103,15 @@ def registerService():
 
     print (res.status_code, res.text)
 
+    if res.status_code < 300:
+        print ("Service registered.\nInterface ID: %d\nProvider ID: %d\nService ID: %d"
+            % (
+                res.json()["interfaces"][0]["id"],
+                res.json()["provider"]["id"],
+                res.json()["serviceDefinition"]["id"],
+            )
+        )
+
     return res.status_code < 300
 
 

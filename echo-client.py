@@ -76,6 +76,8 @@ def registerConsumer():
         print ("Unable to create the system.", file=sys.stderr)
         exit (1)
 
+    print ("System registered.\nConsumer ID: %d" % res.json()["id"])
+
     return True
 
 
