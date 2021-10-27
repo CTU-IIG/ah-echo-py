@@ -28,7 +28,7 @@ CONFIG = {
     "pub_path": # Path to the public key
         "./certificates/echo_client.pub",
     "url_orch": # URL to the orchestrator (no endpoint)
-        "https://127.0.0.1:8441/orchestrator",
+        "https://127.0.0.1:8441/orchestrator/",
     "url_sreg": # URL to the service registry (no endpoint)
         "https://127.0.0.1:8443/serviceregistry/",
 }
@@ -125,7 +125,7 @@ def findServer():
 
     res = requests_pkcs12.post(
             CONFIG["url_orch"]
-            + "/orchestration",
+            + "orchestration",
             json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
 
     print (res.status_code, res.text)
