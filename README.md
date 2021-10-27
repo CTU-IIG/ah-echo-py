@@ -54,6 +54,22 @@ To set up all required data in the Arrowhead database, at first run:
 python3 echo-setup.py
 ```
 
+Alternatively, you can launch both parts of the service and receive:
+```sh
+Interface ID: %d
+Provider ID: %d
+Service ID: %d
+Consumer ID: %d
+```
+
+And use `echo-auth.py` to add an intracloud authorization rule to the Arrowhead database:
+
+```sh
+python3 echo-auth.py -i %d -p %d -s %d -c %d
+```
+
+This has to be run only one (on subsequent runs it does nothing). Then, proceed with relaunching the `echo-client`.
+
 ## Launching the service
 
 In two separate terminals run both:
