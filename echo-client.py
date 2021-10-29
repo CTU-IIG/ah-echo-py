@@ -99,7 +99,7 @@ def findServer():
         "requesterSystem": {
             "systemName": "echo_client",
             "authenticationInfo": public_key,
-            "address": "127.0.0.1",
+            "address": CONFIG["ip"],
             "port": 0, # I assume that this means that we are not listening
         },
 
