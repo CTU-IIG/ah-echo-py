@@ -26,6 +26,8 @@ CONFIG = {
         "123456",
     "pub_path": # Path to the public key
         "./certificates/echo_server.pub",
+    "ca_path":  # Path to the CA file
+        "./certificates/testcloud2.ca",
     "url_sreg": # URL to the service registry (no endpoint)
         "https://127.0.0.1:8443/serviceregistry/",
 }
@@ -99,7 +101,7 @@ def registerService():
     res = requests_pkcs12.post(
             CONFIG["url_sreg"]
             + "register",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -139,7 +141,7 @@ def unregisterService():
             + "unregister?"
             + "&".join(
                 ["%s=%s" % (key, value) for key, value in data.items()]
-            ), pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+            ), pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 

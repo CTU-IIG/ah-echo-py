@@ -27,6 +27,8 @@ CONFIG = {
         "123456",
     "pub_path": # Path to the public key
         "./certificates/echo_client.pub",
+    "ca_path":  # Path to the CA file
+        "./certificates/testcloud2.ca",
     "url_orch": # URL to the orchestrator (no endpoint)
         "https://127.0.0.1:8441/orchestrator/",
     "url_sreg": # URL to the service registry (no endpoint)
@@ -68,7 +70,7 @@ def registerConsumer():
     res = requests_pkcs12.post(
             CONFIG["url_sreg"]
             + "register-system",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -128,7 +130,7 @@ def findServer():
     res = requests_pkcs12.post(
             CONFIG["url_orch"]
             + "orchestration",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
