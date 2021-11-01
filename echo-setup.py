@@ -1,57 +1,55 @@
 #!/usr/bin/env python3
-# Setup the rules for Echo test
+# echo-setup.py
+"""Setup the rules for Echo test. Run from localhost."""
 
-import json
+######################
+# Imports & Globals
+######################
 
 # Arrowhead
+# Requests with .p12 support
 import requests_pkcs12
 
-p12 = "./certificates/sysop.p12"
-pub = "./certificates/sysop.pub"
-client_pub = "./certificates/echo_client.publickey.pem"
-server_pub = "./certificates/echo_server.publickey.pem"
-public_key = ""
 
-with open(pub, "r") as f:
-    public_key = f.read()
+# Global configuration
+exec(open("parameters.py").read())
 
-public_key = "".join(public_key.split("\n")[1:-2])
 
 client_public_key = ""
 
-with open(client_pub, "r") as f:
+with open(CONFIG["client_pub_path"], "r") as f:
     client_public_key = f.read()
 
 client_public_key = "".join(client_public_key.split("\n")[1:-2])
 
 server_public_key = ""
 
-with open(server_pub, "r") as f:
+with open(CONFIG["server_pub_path"], "r") as f:
     server_public_key = f.read()
 
 server_public_key = "".join(server_public_key.split("\n")[1:-2])
 
 
-url = "https://127.0.0.1:8443/serviceregistry/"
-auth_url = "https://127.0.0.1:8445/authorization/"
-orch_url = "https://127.0.0.1:8441/orchestrator/"
+######################
+# Arrowhead Framework
+######################
 
 # Register provider system
 providerID = -1
 
 data = {
-    "systemName": "echo_server",
+    "systemName": CONFIG["server_name"],
     "authenticationInfo": server_public_key, # required with 'CERTIFICATE' and 'TOKEN'
-    "address": "127.0.0.1",
-    "port": 65432,
+    "address": CONFIG["server_host"],
+    "port": CONFIG["server_port"],
 }
 
-res = requests_pkcs12.post(url + "mgmt/systems", json=data, pkcs12_filename=p12, pkcs12_password="123456")
+res = requests_pkcs12.post(CONFIG["url_sreg"] + "mgmt/systems", json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
 print (res.status_code, res.text)
 
 if (res.status_code >= 400):
-    res = requests_pkcs12.get(url + "mgmt/systems", pkcs12_filename=p12, pkcs12_password="123456")
+    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/systems", pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
@@ -69,18 +67,18 @@ print ("Provider ID: %d" % providerID)
 consumerID = -1
 
 data = {
-    "systemName": "echo_client",
+    "systemName": CONFIG["client_name"],
     "authenticationInfo": client_public_key, # required with 'CERTIFICATE' and 'TOKEN'
-    "address": "127.0.0.1",
+    "address": CONFIG["client_ip"],
     "port": 0,
 }
 
-res = requests_pkcs12.post(url + "mgmt/systems", json=data, pkcs12_filename=p12, pkcs12_password="123456")
+res = requests_pkcs12.post(CONFIG["url_sreg"] + "mgmt/systems", json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
 print (res.status_code, res.text)
 
 if (res.status_code >= 400):
-    res = requests_pkcs12.get(url + "mgmt/systems", pkcs12_filename=p12, pkcs12_password="123456")
+    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/systems", pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
@@ -104,12 +102,12 @@ data = {
     "serviceDefinition": "echo",
 }
 
-res = requests_pkcs12.post(url + "mgmt/services", json=data, pkcs12_filename=p12, pkcs12_password="123456")
+res = requests_pkcs12.post(CONFIG["url_sreg"] + "mgmt/services", json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
 print (res.status_code, res.text)
 
 if (res.status_code >= 400):
-    res = requests_pkcs12.get(url + "mgmt/servicedef/" + data["serviceDefinition"], pkcs12_filename=p12, pkcs12_password="123456")
+    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/servicedef/" + data["serviceDefinition"], pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
@@ -133,12 +131,12 @@ data = {
     "interfaceName": "HTTP-INSECURE-JSON",
 }
 
-res = requests_pkcs12.post(url + "mgmt/interfaces", json=data, pkcs12_filename=p12, pkcs12_password="123456")
+res = requests_pkcs12.post(CONFIG["url_sreg"] + "mgmt/interfaces", json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
 print (res.status_code, res.text)
 
 if (res.status_code >= 400):
-    res = requests_pkcs12.get(url + "mgmt/interfaces", pkcs12_filename=p12, pkcs12_password="123456")
+    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/interfaces", pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
@@ -170,14 +168,7 @@ data = {
     ],
 }
 
-res = requests_pkcs12.post(auth_url + "mgmt/intracloud", json=data, pkcs12_filename=p12, pkcs12_password="123456")
+res = requests_pkcs12.post(CONFIG["url_auth"] + "mgmt/intracloud", json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
 print (res.status_code, res.text)
 
-
-# Add orchestration rule between client and server
-data = {
-    "consumerSystemId": consumerID,
-    "providerSystem": {
-    
-    }}

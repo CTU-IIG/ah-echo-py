@@ -18,28 +18,13 @@ import sys
 
 
 # Global configuration
-CONFIG = {
-    "ip":       # IP address of the interface for the client
-        "127.0.0.1",
-    "p12_path": # Path to the p12 certificate
-        "./certificates/echo_client.p12",
-    "p12_pass": # Password to the certificate
-        "123456",
-    "pub_path": # Path to the public key
-        "./certificates/echo_client.pub",
-    "ca_path":  # Path to the CA file
-        "./certificates/testcloud2.ca",
-    "url_orch": # URL to the orchestrator (no endpoint)
-        "https://127.0.0.1:8441/orchestrator/",
-    "url_sreg": # URL to the service registry (no endpoint)
-        "https://127.0.0.1:8443/serviceregistry/",
-}
+exec(open("parameters.py").read())
 
 
 # Reading out the public key (as we need it in plaintext)
 public_key = ""
 
-with open(CONFIG["pub_path"], "r") as f:
+with open(CONFIG["client_pub_path"], "r") as f:
     public_key = f.read()
 
 public_key = "".join(public_key.split("\n")[1:-2])
@@ -61,16 +46,16 @@ def registerConsumer():
         #   - For 'CERTIFICATE' I put there public key (so it should be asymmetric encryption).
         # 'address': IP address of the client
         # 'port': port is not used, so zero (we are consuming)
-        "systemName": "echo_client",
+        "systemName": CONFIG["client_name"],
         "authenticationInfo": public_key,
-        "address": CONFIG["ip"],
+        "address": CONFIG["client_ip"],
         "port": 0,
     }
 
     res = requests_pkcs12.post(
             CONFIG["url_sreg"]
             + "register-system",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
+            json=data, pkcs12_filename=CONFIG["client_p12_path"], pkcs12_password=CONFIG["client_p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -99,9 +84,9 @@ def findServer():
         # 'address' is an IP address / name? of the system
         # 'port' is port used for the communication
         "requesterSystem": {
-            "systemName": "echo_client",
+            "systemName": CONFIG["client_name"],
             "authenticationInfo": public_key,
-            "address": CONFIG["ip"],
+            "address": CONFIG["client_ip"],
             "port": 0, # I assume that this means that we are not listening
         },
 
@@ -130,7 +115,7 @@ def findServer():
     res = requests_pkcs12.post(
             CONFIG["url_orch"]
             + "orchestration",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
+            json=data, pkcs12_filename=CONFIG["client_p12_path"], pkcs12_password=CONFIG["client_p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -143,8 +128,8 @@ def findServer():
         exit (1)
     else:
         for provider in res.json()["response"]:
-            CONFIG["host"] = provider["provider"]["address"]
-            CONFIG["port"] = provider["provider"]["port"]
+            CONFIG["client_host"] = provider["provider"]["address"]
+            CONFIG["client_port"] = provider["provider"]["port"]
             print (provider)
             break
         else:
@@ -161,7 +146,7 @@ def sendData():
     """Open up socket to the server, send data and obtain the response."""
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((CONFIG["host"], CONFIG["port"]))
+        s.connect((CONFIG["client_host"], CONFIG["client_port"]))
         s.sendall(b'Hello, world')
         data = s.recv(1024)
 

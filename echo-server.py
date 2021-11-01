@@ -15,28 +15,13 @@ import socket
 
 
 # Global configuration
-CONFIG = {
-    "host":     # IP address of the interface (here loopback)
-        "127.0.0.1",
-    "port":     # Port to listen on (non-privileged ports are > 1023)
-         65432,
-    "p12_path": # Path to the p12 certificate
-        "./certificates/echo_server.p12",
-    "p12_pass": # Password to the certificate
-        "123456",
-    "pub_path": # Path to the public key
-        "./certificates/echo_server.pub",
-    "ca_path":  # Path to the CA file
-        "./certificates/testcloud2.ca",
-    "url_sreg": # URL to the service registry (no endpoint)
-        "https://127.0.0.1:8443/serviceregistry/",
-}
+exec(open("parameters.py").read())
 
 
 # Reading out the public key (as we need it in plaintext)
 public_key = ""
 
-with open(CONFIG["pub_path"], "r") as f:
+with open(CONFIG["server_pub_path"], "r") as f:
     public_key = f.read()
 
 public_key = "".join(public_key.split("\n")[1:-2])
@@ -68,10 +53,10 @@ def registerService():
         # 'address' is an IP address / name? of the server
         # 'port' is port used for the communication
         "providerSystem": {
-            "systemName": "echo_server",
+            "systemName": CONFIG["server_name"],
             "authenticationInfo": public_key,
-            "address": CONFIG["host"],
-            "port": CONFIG["port"],
+            "address": CONFIG["server_host"],
+            "port": CONFIG["server_port"],
         },
 
         # *Which service we provide?
@@ -101,7 +86,7 @@ def registerService():
     res = requests_pkcs12.post(
             CONFIG["url_sreg"]
             + "register",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
+            json=data, pkcs12_filename=CONFIG["server_p12_path"], pkcs12_password=CONFIG["server_p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -128,9 +113,9 @@ def unregisterService():
         # 'address': IP address of the provider
         # 'port': port of the provider
         # 'system_name': name of the provider
-        "address": CONFIG["host"],
-        "port": CONFIG["port"],
-        "system_name": "echo_server",
+        "address": CONFIG["server_host"],
+        "port": CONFIG["server_port"],
+        "system_name": CONFIG["server_name"],
 
         # *'service_definition': service to be removed
         "service_definition": "echo",
@@ -141,7 +126,7 @@ def unregisterService():
             + "unregister?"
             + "&".join(
                 ["%s=%s" % (key, value) for key, value in data.items()]
-            ), pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"], verify=CONFIG["ca_path"])
+            ), pkcs12_filename=CONFIG["server_p12_path"], pkcs12_password=CONFIG["server_p12_pass"], verify=CONFIG["ca_path"])
 
     print (res.status_code, res.text)
 
@@ -158,7 +143,7 @@ def setupSocket():
     """
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((CONFIG["host"], CONFIG["port"]))
+        s.bind((CONFIG["server_host"], CONFIG["server_port"]))
         s.listen()
         while True:
             conn, addr = s.accept()

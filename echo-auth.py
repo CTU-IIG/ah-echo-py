@@ -18,14 +18,7 @@ import argparse
 
 
 # Global configuration
-CONFIG = {
-    "p12_path": # Path to the p12 certificate
-        "./certificates/sysop.p12",
-    "p12_pass": # Password to the certificate
-        "123456",
-    "url_auth": # URL to the authorization (no endpoint)
-        "https://127.0.0.1:8445/authorization/",
-}
+exec(open("parameters.py").read())
 
 
 ######################
@@ -58,7 +51,7 @@ def addAuthorizationRule(consumerID, interfaceID, providerID, serviceID):
     res = requests_pkcs12.post(
             CONFIG["url_auth"]
             + "mgmt/intracloud",
-            json=data, pkcs12_filename=CONFIG["p12_path"], pkcs12_password=CONFIG["p12_pass"])
+            json=data, pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
