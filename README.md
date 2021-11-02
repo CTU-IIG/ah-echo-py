@@ -40,10 +40,9 @@ wget -O ./certificates/testcloud2.p12 https://raw.githubusercontent.com/eclipse-
 ```
 
 ### Generate certificates for echo service
-**TODO: Not all of them are required. But we will wait for update in the submodule.**
 
 ```sh
-PASSWORD=123456 FOLDER="../certificates/" DOMAIN="aitia" CLOUD="testcloud2" bash ./CertificateGeneration/generate.sh -a echo_server echo_client
+PASSWORD=123456 FOLDER="../certificates/" DOMAIN="aitia" CLOUD="testcloud2" bash ./CertificateGeneration/generate.sh echo_server echo_client
 ```
 
 ## Setting up the rules (and services, etc.)
