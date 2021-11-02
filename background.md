@@ -130,3 +130,11 @@ Is it correct to interact with AHF this way, or should I also use other core sys
 If so, is there any manual on what should be done?
 
 Thanks for replies!
+
+
+--
+_Replies_
+
+**Jacob (LTU)**
+There's a lot to unwrap in your question, so I will focus on one aspect, the use of IDs. As far as I know, the IDs are an implementation detail as far as clients, i.e. providers and consumers, are concerned, and you do not need to remember them. I completely disregard them in the Python client library.
+IDs are only necessary for certain management tasks, like registering authorization and orchestration rules, which should not be done by the clients themselves, that's the sysop's job.
