@@ -107,15 +107,26 @@ res = requests_pkcs12.post(CONFIG["url_sreg"] + "mgmt/services", json=data, pkcs
 print (res.status_code, res.text)
 
 if (res.status_code >= 400):
-    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/servicedef/" + data["serviceDefinition"], pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
+    # This works only when there is a provider for that?
+    #res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/servicedef/" + data["serviceDefinition"], pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
+    #
+    #print (res.status_code, res.text)
+    #
+    #serviceID = res.json()["data"][0]["serviceDefinition"]["id"]
+    #
+    # Note: This returns even the providers!
+    #for providers in res.json()["data"]:
+    #    providerIDs.append(providers["provider"]["id"])
+
+    res = requests_pkcs12.get(CONFIG["url_sreg"] + "mgmt/services", pkcs12_filename=CONFIG["auth_p12_path"], pkcs12_password=CONFIG["auth_p12_pass"])
 
     print (res.status_code, res.text)
 
-    serviceID = res.json()["data"][0]["serviceDefinition"]["id"]
-
-    # Note: This returns even the providers!
-    for providers in res.json()["data"]:
-        providerIDs.append(providers["provider"]["id"])
+    for service in res.json()["data"]:
+        print (service)
+        if service["serviceDefinition"] == data["serviceDefinition"]:
+            serviceID = service["id"]
+            break
 
 else:
     serviceID = res.json()["id"]
