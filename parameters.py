@@ -18,13 +18,13 @@ CLOUD_NAME = "testcloud2"
 
 # Systems
 ## Echo-server
-SERVER_NAME = "echo_server"
+SERVER_NAME = "echoserver"
 SERVER_PASS = "123456"
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
 
 ## Echo-client
-CLIENT_NAME = "echo_client"
+CLIENT_NAME = "echoclient"
 CLIENT_PASS = "123456"
 CLIENT_IP = "127.0.0.1"
 

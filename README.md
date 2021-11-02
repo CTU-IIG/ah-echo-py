@@ -6,6 +6,8 @@ It is designed to use `testcloud2` configuration from the [core-java-spring](htt
 
 The reason for using `testcloud2` instead of `testcloud1` is, that the latter one had some naming issues inside the certificates.
 
+In addition, because of [#202](https://github.com/eclipse-arrowhead/core-java-spring/issues/202) underscores are not supported in Arrowhead Framework 4.4.0+ (not supported in DNS/CN). To avoid issues we won't use even dashes, because who knows.
+
 ## Downloading required packages
 
 This version requires Python 3 with only one additional package:
@@ -42,7 +44,7 @@ wget -O ./certificates/testcloud2.p12 https://raw.githubusercontent.com/eclipse-
 ### Generate certificates for echo service
 
 ```sh
-PASSWORD=123456 FOLDER="../certificates/" DOMAIN="aitia" CLOUD="testcloud2" bash ./CertificateGeneration/generate.sh echo_server echo_client
+PASSWORD=123456 FOLDER="../certificates/" DOMAIN="aitia" CLOUD="testcloud2" bash ./CertificateGeneration/generate.sh echoserver echoclient
 ```
 
 ## Setting up the rules (and services, etc.)
